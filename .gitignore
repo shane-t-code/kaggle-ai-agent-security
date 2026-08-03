@@ -1,0 +1,10 @@
+# Private competition strategy / reference docs — do not publish (Kaggle §2.4b: no redistribution)
+CLAUDE1.md
+OVERVIEW.md
+
+# Python caches
+__pycache__/
+*.pyc
+
+# Local run history / SDK scratch
+.aicomp/
