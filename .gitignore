@@ -1,10 +1,47 @@
-# Private competition strategy / reference docs — do not publish (Kaggle §2.4b: no redistribution)
+# === Private competition strategy / reference docs — never publish (Kaggle §2.4b) ===
 CLAUDE1.md
 OVERVIEW.md
 
-# Python caches
+# === Competition data / fixtures — MUST NOT be redistributed (Kaggle §2.4b). ===
+#     Safety net: these normally live in site-packages / on H:, but never commit them if a
+#     copy ever lands in the working tree.
+secret.txt
+web_corpus.json
+mail_seed.json
+file_seed/
+fixtures/
+
+# === Model weights / caches (live on H:, never in the repo) ===
+*.gguf
+*.safetensors
+*.bin
+models/
+hf/
+.cache/
+
+# === Secrets / credentials ===
+.env
+.env.*
+*.key
+*.pem
+*.token
+*_token*
+
+# === Python ===
 __pycache__/
 *.pyc
+*.pyo
+*.egg-info/
+.ipynb_checkpoints/
 
-# Local run history / SDK scratch
+# === Local run history / SDK scratch ===
 .aicomp/
+scratch/
+*.log
+
+# === Editor / OS ===
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
