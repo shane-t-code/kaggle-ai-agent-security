@@ -325,6 +325,14 @@ class MaximallyStrict(GuardrailBase):
         return Decision.allow()
 
 
+class AllowAll(GuardrailBase):
+    """Permissive guard — always ALLOW. Used to test ELICITATION (does the model perform the action?)
+    separately from guarding (does a guard block it?). Not a private-board hypothesis."""
+
+    def decide(self, name: str, args: Mapping[str, Any], ctx: Mapping[str, Any]) -> Decision:
+        return Decision.allow("permissive")
+
+
 class SemanticJudge(GuardrailBase):
     """Low-FP LLM-judge stand-in (the private guard MAJ0RT0M speculated is an LLM-as-judge). It
     recognizes the OBVIOUS attack shapes — exfil (SECRET_MARKER / secret-word content in an egress
@@ -371,6 +379,7 @@ ZOO: dict[str, Callable[[], GuardrailBase]] = {
     "content_plus_intent": ContentPlusIntent,
     "semantic_judge": SemanticJudge,
     "maximally_strict": MaximallyStrict,
+    "allow_all": AllowAll,
 }
 
 # Guardrails we treat as the private-board proxy (exclude the permissive public baseline).
