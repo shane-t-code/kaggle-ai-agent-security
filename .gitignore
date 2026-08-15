@@ -1,4 +1,5 @@
 # === Private competition strategy / reference docs — never publish (Kaggle §2.4b) ===
+CLAUDE.md
 CLAUDE1.md
 OVERVIEW.md
 HANDOFF.md
@@ -46,3 +47,8 @@ scratch/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# === Local SDK bundle / venv (never commit; lives outside repo but safety-net here) ===
+sdk_bundle/
+kaggle_local/
+.venv/
