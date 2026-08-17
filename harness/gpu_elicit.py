@@ -52,12 +52,23 @@ from pathlib import Path
 from typing import Any, Callable
 
 # --- make the repo harness (guardrail_zoo) + the SDK importable -------------------------------
-_REPO = Path("/Users/shanethivaharraja/Kaggle")
+# Portable across Mac / Windows / RunPod: the repo root is the parent of this harness/ dir, so
+# derive it from __file__ rather than hardcoding a machine-specific path.
+_REPO = Path(__file__).resolve().parent.parent
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
-_SDK_BUNDLE = Path("/Users/shanethivaharraja/kaggle_local/sdk_bundle")
-if _SDK_BUNDLE.exists() and str(_SDK_BUNDLE) not in sys.path:
-    sys.path.insert(0, str(_SDK_BUNDLE))
+# SDK bundle (aicomp_sdk + kaggle_evaluation) for when the SDK is NOT pip-installed. On the rented
+# box, set AICOMP_SDK_BUNDLE to the bundle dir (the one containing aicomp_sdk/ and kaggle_evaluation/);
+# a few common fallbacks are also tried. Silently skipped when the SDK is already importable.
+for _cand in (
+    os.environ.get("AICOMP_SDK_BUNDLE", ""),
+    str(_REPO / "sdk_bundle"),
+    str(_REPO.parent / "kaggle_local" / "sdk_bundle"),
+    str(Path.home() / "kaggle_local" / "sdk_bundle"),
+):
+    if _cand and Path(_cand).exists() and _cand not in sys.path:
+        sys.path.insert(0, _cand)
+        break
 
 from aicomp_sdk.core.cells import cell_signature
 from aicomp_sdk.core.env.sandbox import SandboxEnv

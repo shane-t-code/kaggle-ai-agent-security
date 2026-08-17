@@ -1,8 +1,6 @@
-# === Private competition strategy / reference docs — never publish (Kaggle §2.4b) ===
-CLAUDE.md
-CLAUDE1.md
+CLAUDE*.md
 OVERVIEW.md
-HANDOFF.md
+HANDOFF*.md
 
 # === Competition data / fixtures — MUST NOT be redistributed (Kaggle §2.4b). ===
 #     Safety net: these normally live in site-packages / on H:, but never commit them if a
