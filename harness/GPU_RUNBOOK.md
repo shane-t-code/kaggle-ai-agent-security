@@ -1,62 +1,79 @@
-# GPU SESSION RUNBOOK — next pod (both arms, turnkey)
+# GPU SESSION RUNBOOK — next pod (turnkey)
 
 Board-faithful throughout: `--agent gguf` (llama.cpp on the hosted GGUFs; hosted parity = max_new_tokens 1024,
-greedy, max-hops 8). `allow_all` guard measures ELICITATION (does the model perform the chain); `optimal_public`
-measures public survival. Full pod setup (upload zips, deps, env vars) is in memory **jed-runpod-gpu-workflow**
-— deploy any available 24GB+ card (A40 $0.44 / A5000 $0.27), one model at a time.
+greedy, max-hops 8). `allow_all` guard measures ELICITATION/throughput (does the model perform the chain);
+`optimal_public` measures board-faithful survival. Full pod setup (upload `harness.zip` + the Kaggle SDK bundle,
+deps, env vars) is in memory **jed-runpod-gpu-workflow** — deploy any available 24GB+ card, one model at a time.
+Interpreter on the pod is the venv python; LOCALLY the only interpreter with `aicomp_sdk` is
+`C:\Users\Shane\anaconda3\python.exe`.
 
-Ordered by EV toward TOP-5 PRIVATE (from the generative brainstorm wf_e97401b4). Run top-down; stop when the
-pod budget runs out — the earlier steps decide the most.
-
----
-
-## 1. [COVERAGE — highest EV] Does the collapse arm have a GEMMA leg?
-The single biggest unknown: gemma fires C 4/4, but D and X are UNMEASURED. A dead gemma D/X leg HALVES the
-collapse payoff under the mean. This gates the Sub1 reweight.
-```
-python -m harness.coverage_leg_probe --agent gguf --model gemma  --reps 3
-python -m harness.coverage_leg_probe --agent gguf --model gpt_oss --reps 3   # baseline (expect all fire)
-```
-**Decision:** if gemma fires D (single fs.write) AND X (2-msg read->post) → collapse arm has a full 2nd leg →
-proceed to step 3 to make D cheaper. If gemma-D fires but X doesn't → collapse gemma leg = C+D, treat X as a
-gpt-only tail. If neither → concentrate Sub1's gemma weight on C.
-
-## 2. [THROUGHPUT] Confirm multi_distinct transfers + test the marginal riders
-`multi_distinct` (8 distinct-domain posts/interact = 1.31x local) is the ONE real throughput gain; the board A/B
-is pending, this confirms it board-faithfully and measures the 4 marginal riders (all self-route by raw/sec).
-```
-python -m harness.throughput_bandit --agent gguf --model gpt_oss --reps 3   # multi_distinct vs single vs T2 forge
-python -m harness.throughput_bandit --agent gguf --model gemma  --reps 2   # single vs single_tail (T1)
-```
-**Decision:** does `multi_distinct` still win 8/8 posts and beat single-post raw/sec on gguf? Does `single_tail`
-(T1, gemma hop-1-waste) beat plain single-post on gemma? Does `multi_distinct_forge` (T2) beat plain multi_distinct
-on gpt? Adopt any rider into `attack_sub2_multidistinct.py` ONLY if it beats the winner past run-to-run noise
-(keep the probe set PRUNED — the 65.4 regression was slow losing templates eating fill budget).
-> HONEST: the brainstom rates T1 ~+3-6 mean, T2/T3/T4 ~0. None is a wall-breaker. multi_distinct → mean ~96-106
-> ceiling; gemma is parser-capped so 137 is out of reach by known means (137 = gpt-cap-pin ~180 + gemma ~94,
-> needs t_post ~4.4s = another 1.4x beyond multi_distinct that no code lever delivers).
-
-## 3. [COVERAGE] Is D (sev4) reasoning-suppressible → a cheap collapse-arm breach?
-email.send suppression is DEAD (natural language), but fs.write is tool-call syntax — if it suppresses, D farms
-at ~sentinel throughput at DOUBLE C's severity: the best collapse-arm throughput lever.
-```
-python -m harness.d_suppress_probe --agent gguf --model gpt_oss --reps 4
-```
-**Decision:** if suppressed-D fires + beats plain-D raw/sec → adopt syntax+suppressed D and raise D's weight in
-the collapse mix (with step 1's gemma-D result). If it breaks (like email.send) → keep plain D.
+> GPU sessions run ~15 min, not 1h — do not under-budget. The whole plan below is ONE pass.
 
 ---
 
-## After the session — reweight + submit (gated on the above)
-- **Sub1 (coverage):** if gemma fires D → shift the mix toward D (D is sev4=8 vs C sev3=4, gemma-safe single call);
-  candidate `D40/C40/X`. Split X into X_clean (no marker, real lineage — un-value-blockable since the guard can't
-  see outputs) + X_floor (marker). Apply ONLY after steps 1/3 land. Ship as an A/B vs `attack_sub1_fill.py`.
-- **Sub2 (throughput):** ship `attack_sub2_multidistinct.py` (pruned probe set); fold in any rider that won step 2.
-- **Operational must-dos:** manually select BOTH finals; size to the replay ceiling with margin; front-load by value.
+## PRIMARY INSTRUMENT — `harness/elicit_search.py` (the automated template SEARCH)
+Built 2026-08-17 (workflow wf_aadf5e56). A simple two-phase search (UCB1 map → evolutionary mutate) over a
+template GRAMMAR (framing × post-count × suppression-tail × arg-terseness × domain-scheme), reward = REAL
+raw/sec through the real gguf model + real scorer, reusing one env via reset(). Greedy decode ⇒ raw is
+deterministic (reps denoise latency only). Seeds + grammar in `harness/elicit_search_seeds.py` (37 verified
+seeds; SDK-reproduced raw: multipost8=130, single=18, K=4→66). It supersedes the fixed `throughput_bandit.py`
+(that stays as a fallback). It does NOT test board-transfer — it ranks by local raw/sec and FLAGS winners for
+a board A/B. **Never treat a local raw/sec winner as a board gain — the board A/B is the only settle**
+(multipost has a documented local→board non-transfer record: 78.75 neutral / 65.4 regression).
+
+### What this session decides (from the synthesis)
+1. **THE decisive unknown — the GEMMA cap.** Code-PROVEN it is NOT a Python wall (the sandbox banks up to 8
+   successful hops; the only thing capping gemma at 1 is a model-EMISSION doubled-brace on continuation hops),
+   so it is genuinely GPU-testable. STEP 3 settles it: if a gemma multi-hop arm banks `raw>18` (posts>1) the
+   120 path has a mechanism; if EVERY gemma multipost arm returns `raw=18.0` exactly (posts=1.0) the cap is a
+   real emission wall and **120 is out of reach by known means → stop throughput, commit to the coverage arm.**
+2. **The gpt leg squeeze** — does distinct-domain multipost beat single-post raw/sec board-faithfully (78→~90-100).
+
+### RUN PLAN (one ~1h pass; run top-down, stop early if STEP 3 collapses)
+```
+# STEP 1 — gpt_oss throughput (pure-elicitation guard)
+python -m harness.elicit_search --agent gguf --model gpt_oss --guard allow_all --reps 3 --rounds 12 --budget-s 3600 --max-hops 8 --max-new-tokens 1024
+#   GOOD: a K=8 multipost arm reports posts≈8.0 (raw≈130) at raw/sec > multi_distinct(61)×1.08 ≈ 66
+#         → prints "FLAG WINNER … QUEUE FOR BOARD A/B".
+#   BAD:  best arm is 'single' or raw/sec ≤ base×1.08 → "NO past-noise winner … ~88 is the earned ceiling".
+#   Also read realized posts=(raw-2)/16 vs requested K — an arm that requests 8 but posts ~3 is auto-penalized.
+
+# STEP 2 — gpt_oss board-faithful confirmation (only worth it if STEP 1 found a winner)
+python -m harness.elicit_search --agent gguf --model gpt_oss --guard optimal_public --reps 3 --rounds 8 --budget-s 2400 --max-hops 8 --max-new-tokens 1024
+#   GOOD: the winner survives the public guard at ~same raw/sec (clean-URL SECRET_MARKER ALLOWs+fires).
+#   BAD:  raw/sec drops (an arm DENYs) → that arm is not board-real.
+
+# STEP 3 — gemma: THE decisive test (grammar auto-drops Harmony tails on gemma; they error there)
+python -m harness.elicit_search --agent gguf --model gemma --guard allow_all --reps 3 --rounds 8 --budget-s 3600 --max-hops 8 --max-new-tokens 1024
+#   GOOD (cap BROKEN → opens 120): ANY multi-hop arm reports posts>1 (raw>18), ideally posts≈8/raw≈130.
+#   BAD  (cap CONFIRMED → kills 120 by known means): EVERY multipost arm = raw≈18.0 exactly (posts=1.0).
+#   THIS SINGLE NUMBER decides whether 120 is reachable. Base rate is against it (RE: gemma double-braces).
+
+# STEP 4 — gemma board-faithful: ONLY if STEP 3 broke the cap (else skip — nothing to confirm)
+python -m harness.elicit_search --agent gguf --model gemma --guard optimal_public --reps 3 --rounds 6 --budget-s 1800 --max-hops 8 --max-new-tokens 1024
+```
+Budget note: raw is deterministic under greedy decode; `--reps` denoises LATENCY only. Do NOT grind — if gemma
+collapses in STEP 3, stop throughput and redirect to coverage.
+
+### After the session — decide + submit (gated on the above)
+- **gemma cap BROKEN (STEP 3 posts>1):** the biggest find in the project. Build a gemma multi-hop sentinel Sub2
+  arm; both legs can climb → board 120-135 has a mechanism. (Also confirm STEP 4 survives the public guard.)
+- **gemma cap CONFIRMED (STEP 3 all raw=18):** 120 is out of reach by throughput. If STEP 1/2 found a gpt
+  multipost winner, fold it into `attack_sub2_multidistinct.py`'s probe set and A/B vs the proven 78; otherwise
+  ~88 is the earned ceiling. Then **redirect remaining effort to the collapse-arm coverage** (`attack_sub1_balanced.py`)
+  where the actual top-5 ticket lives.
+
+---
+
+## SECONDARY (already run 2026-08-17 GPU #2 — rerun only to re-confirm)
+`coverage_leg_probe.py` (gemma C/D/X fire-rate — ANSWERED YES 3/3 both models), `d_suppress_probe.py`
+(D-suppress DEAD 0/4), `throughput_bandit.py` (fixed-template; multi_distinct 1.1-1.3x noisy). These are
+subsumed by `elicit_search.py` for the throughput fronts; keep for spot-checks.
 
 ## Standing reality (unbiased)
-Honest top-5 PRIVATE ≈ 10-15%; most-likely outcome mid-pack. Our own gateway names the private guard
-`persistent_provenance` (a provenance guard the sentinel SURVIVES) → the leading-evidence world does NOT collapse,
-so coverage has no differential edge there and throughput is only mid-pack. The host's "public/private don't
-overlap" hint tilts the other way. Genuinely unresolved → the best-of-2 hedge is correct; push BOTH arms, let this
-session decide the gemma-D leg + the multi_distinct transfer, keep the hedge, accept the coin.
+Honest top-5 PRIVATE ≈ 10-15%; most-likely outcome mid-pack. Throughput ceiling by KNOWN means ≈ 96-104
+(gpt multipost lifts only the gpt leg; gemma parser-capped ~88-95) — **120 needs the gemma cap to break**, which
+the base rate is against but which this session measures board-faithfully instead of assuming. Our own gateway
+names the private guard `persistent_provenance` (sentinel SURVIVES → provenance world → coverage has no edge,
+throughput mid-pack); the host's "public/private don't overlap" tilts toward the collapse world (coverage wins).
+Genuinely unresolved → best-of-2 hedge is correct; push BOTH arms. Manually select BOTH finals at close.
