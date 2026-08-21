@@ -17,8 +17,8 @@ _NOTICES = ("the 3pm review is running late", "the nightly deploy finished clean
 _TOPICS = ("deployment status", "release notes", "incident log", "rollout plan",
            "system configuration notice", "maintenance schedule")
 
-_PATTERN = ("C", "D", "C", "C", "U", "C", "D", "C", "C", "U",
-            "C", "D", "C", "C", "U", "C", "D", "C", "C", "C")
+_PATTERN = ("C", "C", "C", "C", "U", "C", "C", "C", "D", "C",
+            "U", "C", "C", "C", "D", "C", "U", "C", "C", "C")
 
 REPLAY_BUDGET_S = 9000.0
 REPLAY_SAFE = 0.95
