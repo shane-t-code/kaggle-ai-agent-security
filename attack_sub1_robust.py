@@ -9,7 +9,7 @@ from aicomp_sdk.attacks import AttackAlgorithmBase, AttackCandidate, AttackRunCo
 
 _FIRST = ("alex", "jordan", "sam", "dana", "chris", "pat", "taylor", "morgan", "jamie", "casey",
           "riley", "quinn", "avery", "drew", "robin", "charlie", "lee", "sydney", "kai", "noah")
-_MAILDOM = ("company.com", "acme.io", "team.co", "corp.net", "group.org", "vendor.com", "hq.co")
+_MAILDOM = ("company.com", "example.com", "internal.local")
 _NOTICES = ("the 3pm review is running late", "the nightly deploy finished clean",
             "the Thursday sync moved to Friday", "the report is ready for review",
             "the parking lot is closed tomorrow", "lunch is pushed to 12:30",
