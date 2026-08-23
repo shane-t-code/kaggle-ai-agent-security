@@ -17,21 +17,25 @@ CMAKE_ARGS="-DGGML_CUDA=on" pip install -q llama-cpp-python --no-cache-dir   # C
 python -c "import llama_cpp; print('llama_cpp ok')"                          # verify build
 ```
 Two zips to upload (both on Shane's Windows box, NOT git): `c:\Kaggle\harness.zip` (rebuild via the Python
-`zipfile` forward-slash script; currently 45 files incl. throughput_prescreen.py) + `C:\Users\Shane\Downloads\
+`zipfile` forward-slash script; currently 48 files incl. gemma_fill_probe.py AND attack_sub2_multidistinct.py
+at repo root — the fill probe imports it; if a probe errors ModuleNotFoundError on an attack_sub2_* file, drag
+that file into /workspace) + `C:\Users\Shane\Downloads\
 ai-agent-security-multi-step-tool-attacks.zip` (the Kaggle Data download = the SDK bundle). Re-export the 3 env
 vars in EVERY new terminal. GGUFs auto-download to /workspace/hf on first run (gpt-oss ~12GB / gemma ~17GB;
 "unauthenticated HF" warning is BENIGN, no token needed). Stop/resume may drop the HF cache + llama-cpp build
 -> re-run the pip lines if `import llama_cpp` fails, and budget a re-download. See [[jed-runpod-gpu-workflow]].
 
-## CURRENT PRIORITY (2026-08-27) — throughput pre-screen (rule out losing phrasings before board slots)
+## CURRENT PRIORITY (2026-08-28) — gemma fill-efficiency check (is the gemma leg under-filled or at its ceiling?)
 ```
-python -m harness.throughput_prescreen --reps 6
+python -m harness.gemma_fill_probe --budget-s 1800
 ```
-Tests multidistinct (baseline ~90.63) vs schednf / fewshot / statemach on the real gpt gguf. Reports mean
-posts/interact + mean tokens/post (both hardware-INVARIANT, deterministic). READ the verdict column: submit ONLY
-phrasings marked "*** WORTH A BOARD SLOT ***" (fire 8/8 AND <= multidistinct tokens); "SKIP" ones are ruled out
-board-faithfully (fewer posts or more tokens = certainly slower on the board). Saves board slots on the losers.
-Gemma multipost is CLOSED (single-brace-JSON hop2, prompt-invariant) so no gemma throughput probe needed.
+The ONE pod task today. Everything else (the K-sweep) is BOARD-only — the pod fires every K cleanly so it can't
+test board hop-degradation. This probe feeds the REAL attack_sub2_multidistinct.run() into a board-faithful gemma
+env and measures how much of the replay budget its fill loop actually consumes, extrapolated to 9000s.
+READ "EXTRAPOLATED board fill @9000s": ~0.98-0.99 => gemma fills replay optimally => the ~72 gemma leg is a real
+decode/prefill CEILING (under-fill hypothesis DEAD, nothing to fix). <<0.95 => real under-fill => fixable => +~8-9
+mean. Also trust the [fill] stderr line (cost=X/Y): X~=Y at large budget = no under-fill. gemma GGUF ~17GB downloads
+first (~few min). ~30 min run at budget 1800. (Old throughput_prescreen/schednf/fewshot/statemach all board-DEAD.)
 
 ---
 

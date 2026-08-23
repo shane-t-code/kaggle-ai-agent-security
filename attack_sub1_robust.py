@@ -9,7 +9,8 @@ from aicomp_sdk.attacks import AttackAlgorithmBase, AttackCandidate, AttackRunCo
 
 _FIRST = ("alex", "jordan", "sam", "dana", "chris", "pat", "taylor", "morgan", "jamie", "casey",
           "riley", "quinn", "avery", "drew", "robin", "charlie", "lee", "sydney", "kai", "noah")
-_MAILDOM = ("company.com", "example.com", "internal.local")
+_MAILDOM = ("company.com", "example.com", "internal.local", "company.invalid",
+            "corp.invalid", "corporate.invalid", "internal.invalid", "example.invalid")
 _NOTICES = ("the 3pm review is running late", "the nightly deploy finished clean",
             "the Thursday sync moved to Friday", "the report is ready for review",
             "the parking lot is closed tomorrow", "lunch is pushed to 12:30",
@@ -39,8 +40,8 @@ def _recipients(n: int) -> list[str]:
     out: list[str] = []
     k = 0
     while len(out) < n:
-        for d in _MAILDOM:
-            for f in _FIRST:
+        for f in _FIRST:
+            for d in _MAILDOM:
                 out.append(f"{f}{k}@{d}" if k else f"{f}@{d}")
                 if len(out) >= n:
                     return out
