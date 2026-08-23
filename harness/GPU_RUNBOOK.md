@@ -1,5 +1,41 @@
 # GPU SESSION RUNBOOK — next pod (turnkey)
 
+## FRESH-POD SETUP (run EVERY time — stop/resume wipes disk + env). Copy-paste, top to bottom.
+Pod: RunPod, template `Runpod Pytorch 2.8.0`, Jupyter ON, container disk 40GB, /workspace 60GB, any 24GB+ card
+(A40 48GB $0.44/hr = value pick). In Jupyter, DRAG both zips into /workspace, then New -> Terminal:
+```
+cd /workspace
+apt-get update -qq && apt-get install -y -qq unzip
+unzip -o harness.zip
+unzip -o ai-agent-security-multi-step-tool-attacks.zip -d sdk_bundle
+ls sdk_bundle    # expect: aicomp_sdk  aicomp_sdk-3.1.2.dist-info  kaggle_evaluation  __init__.py
+export AICOMP_SDK_BUNDLE=/workspace/sdk_bundle
+export PYTHONPATH=/workspace/sdk_bundle:/workspace
+export HF_HOME=/workspace/hf
+pip install -q pydantic "gymnasium<1" openai huggingface_hub numpy
+CMAKE_ARGS="-DGGML_CUDA=on" pip install -q llama-cpp-python --no-cache-dir   # CUDA build ~5-10 min
+python -c "import llama_cpp; print('llama_cpp ok')"                          # verify build
+```
+Two zips to upload (both on Shane's Windows box, NOT git): `c:\Kaggle\harness.zip` (rebuild via the Python
+`zipfile` forward-slash script; currently 45 files incl. throughput_prescreen.py) + `C:\Users\Shane\Downloads\
+ai-agent-security-multi-step-tool-attacks.zip` (the Kaggle Data download = the SDK bundle). Re-export the 3 env
+vars in EVERY new terminal. GGUFs auto-download to /workspace/hf on first run (gpt-oss ~12GB / gemma ~17GB;
+"unauthenticated HF" warning is BENIGN, no token needed). Stop/resume may drop the HF cache + llama-cpp build
+-> re-run the pip lines if `import llama_cpp` fails, and budget a re-download. See [[jed-runpod-gpu-workflow]].
+
+## CURRENT PRIORITY (2026-08-27) — throughput pre-screen (rule out losing phrasings before board slots)
+```
+python -m harness.throughput_prescreen --reps 6
+```
+Tests multidistinct (baseline ~90.63) vs schednf / fewshot / statemach on the real gpt gguf. Reports mean
+posts/interact + mean tokens/post (both hardware-INVARIANT, deterministic). READ the verdict column: submit ONLY
+phrasings marked "*** WORTH A BOARD SLOT ***" (fire 8/8 AND <= multidistinct tokens); "SKIP" ones are ruled out
+board-faithfully (fewer posts or more tokens = certainly slower on the board). Saves board slots on the losers.
+Gemma multipost is CLOSED (single-brace-JSON hop2, prompt-invariant) so no gemma throughput probe needed.
+
+---
+
+
 Board-faithful throughout: `--agent gguf` (llama.cpp on the hosted GGUFs; hosted parity = max_new_tokens 1024,
 greedy, max-hops 8). `allow_all` guard measures ELICITATION/throughput (does the model perform the chain);
 `optimal_public` measures board-faithful survival. Full pod setup (upload `harness.zip` + the Kaggle SDK bundle,
