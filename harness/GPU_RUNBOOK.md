@@ -25,10 +25,20 @@ vars in EVERY new terminal. GGUFs auto-download to /workspace/hf on first run (g
 "unauthenticated HF" warning is BENIGN, no token needed). Stop/resume may drop the HF cache + llama-cpp build
 -> re-run the pip lines if `import llama_cpp` fails, and budget a re-download. See [[jed-runpod-gpu-workflow]].
 
-## CURRENT PRIORITY (2026-08-28) — gemma fill-efficiency check (is the gemma leg under-filled or at its ceiling?)
+## CURRENT PRIORITY (2026-08-29) — CONTINUATION-SUPPRESSION PHRASING RE-SEARCH (toolonly was board-VINDICATED)
 ```
-python -m harness.gemma_fill_probe --budget-s 1800
+python -m harness.cpu_throughput_probe --reps 4 --k 8 --threads 8
 ```
+Board proved toolonly ~92.6 >> multidistinct ~73 (a 20pt PHRASING effect) -> the CPU wall-clock probe was RIGHT all
+along and we wrongly demoted it as a "GPU artifact". This run broadens the continuation-suppression phrasing set (8
+variants incl. REVIVED commentary_forge + toolonly_plus/noanalysis_hard/direct/numbered) and ranks them by CPU
+raw/sec vs the toolonly INCUMBENT. CPU is board-faithful for continuation cost (GPU hides it). CPU 20B is SLOW
+(~tens of s/interact) so this takes ~1-1.5h at reps=4. READ the VERDICT: it prints a BOARD SHORTLIST of any reliable
+(8/8) challenger that beats toolonly by >5% -> board-test the top 2-3 with 3-4 draws EACH vs a fresh toolonly draw
+(never 1-2 draws -- that small-sample trap is what mis-killed toolonly the first time). If none beats toolonly, the
+phrasing space is near-maxed and the last ~14pts to medals is a board-serving/multipost-reliability effect, not a prompt.
+NOTE: forces n_gpu_layers=0 (CPU) on purpose; the A6000 GPU sits idle -- that is correct, CPU is the faithful ranker.
+(Old gemma_fill_probe result: gemma leg CONFIRMED at its decode ceiling ~72, no under-fill.)
 The ONE pod task today. Everything else (the K-sweep) is BOARD-only — the pod fires every K cleanly so it can't
 test board hop-degradation. This probe feeds the REAL attack_sub2_multidistinct.run() into a board-faithful gemma
 env and measures how much of the replay budget its fill loop actually consumes, extrapolated to 9000s.
