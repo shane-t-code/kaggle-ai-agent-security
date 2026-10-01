@@ -1,7 +1,7 @@
 """
 GEMMA-INTERLEAVE PROBE — the last untested corner of the gemma 2-post wall (tool-type-switch pattern-break).
 
-WHY (2026-08-22, out-of-box workflow wf_bb9b21b0):
+WHY:
   gemma is HALF the mean and walled at ~2 scored http.post per interact. Our whole "gemma multipost is
   closed" verdict came from a 26,400-WORDING search -- but that search swept http.post PHRASING ONLY; it
   NEVER switched tool type between calls. The doubled-brace garble that caps gemma at 2 is ASSUMED

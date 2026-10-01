@@ -2,7 +2,7 @@
 SCHEDULE PROBE - the one untested throughput space the reviewers pointed at (2026-08-26).
 
 WHY:
-  Every CODE-checkable reviewer claim was verified dead/already-done (workflow wf_7511a15c). The ONE avenue
+  Every CODE-checkable reviewer claim was verified dead/already-done. The ONE avenue
   the code pass could NOT settle is Reviewer 3's #1 + Reviewer 1's Item 3: an ELICITATION hypothesis, not a
   code fact. Namely: the 90->~113 gpt gap may come from making hops 2-8 MECHANICALLY INEVITABLE - the model
   treating the 8 posts as executing an already-specified finite sequence rather than 8 fresh tool-use

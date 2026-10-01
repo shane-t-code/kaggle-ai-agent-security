@@ -1,10 +1,10 @@
 """
-GEMMA FILL-EFFICIENCY PROBE (2026-08-28) - is the gemma leg UNDER-FILLED or at its decode ceiling?
+Gemma fill-efficiency probe - is the gemma leg under-filled, or at its decode ceiling?
 
-Web-Claude challenge: our "gemma ~72 is the shared ceiling everyone hits" is an INFERENCE about the
-pack's hidden split, not a measurement. This converts it to a fact for ZERO board cost: run the REAL
-attack_sub2_multidistinct.run() against a board-faithful gemma env and measure how much of the replay
-budget its fill loop actually consumes, extrapolated to the 9000s board budget.
+Tests whether the gemma arm's score ceiling is an inference about throughput rather than a
+measurement. Runs the real attack_sub2_multidistinct.run() against a board-faithful gemma env and
+measures how much of the replay budget its fill loop actually consumes, extrapolated to the full
+board budget.
 
   board fill ratio ~ 0.98-0.99  => gemma fills replay optimally => 72 is a decode/prefill CEILING
                                     (under-fill hypothesis DEAD; nothing to fix).

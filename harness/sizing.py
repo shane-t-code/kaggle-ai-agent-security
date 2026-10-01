@@ -1,4 +1,4 @@
-"""Candidate-sizing model for the JED attack replay (CLAUDE1.md §11.8).
+"""Candidate-sizing model for the JED attack replay.
 
 The evaluator replays candidates IN ORDER until a per-phase deadline (9000 s). attack.py cannot
 tailor per model (AttackRunConfig has no model id), so ONE candidate list is replayed on both

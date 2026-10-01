@@ -1,7 +1,7 @@
 """
 GEMMA-LEG CPU-FAITHFUL PROBE — the last un-swept corner of the throughput surface.
 
-WHY (found by the 2026-08-20 lever-hunt workflow wf_20b45ac3-c83):
+WHY (found by the lever-hunt):
   Every throughput lever we have EVER shipped (Harmony suppression, multi_distinct, toolonly) is GPT-ONLY.
   The gemma leg -- ~half the board mean, decomposed at ~68-78 vs its own ~88 single-post ceiling -- has
   NEVER been measured on a board-faithful CPU instrument: gemma_leg_probe.py builds the GGUF at

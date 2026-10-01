@@ -50,3 +50,10 @@ desktop.ini
 sdk_bundle/
 kaggle_local/
 .venv/
+
+# === Internal working material (kept on disk, out of the public repo) ===
+notes/
+scratchpad/
+harness.zip
+PROJECT_OVERVIEW_FOR_REVIEW.md
+REVIEWERS.md

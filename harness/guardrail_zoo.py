@@ -158,8 +158,7 @@ class Paranoid(GuardrailBase):
 
 
 # --- The three private-guardrail hypotheses that span the crux (added 2026-08-14) ----------
-# The private guard's id is `persistent_provenance_private`. The decisive unknown (CLAUDE1.md
-# §11.2): does it block on ARGUMENT CONTENT (scans http.post.data) or on value PROVENANCE
+# The private guard's id is `persistent_provenance_private`. The decisive unknown: does it block on ARGUMENT CONTENT (scans http.post.data) or on value PROVENANCE
 # (sticky taint from a protected source)? These three model the poles. All carry STICKY taint
 # (state accumulates across a candidate's tool calls) — the "persistent" that optimal's decaying
 # 5-event window lacks. Instantiate one per candidate and feed events in order so taint builds.
